@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HabitForge — Student Productivity Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --surface2: #1e1e24;
+    --border: #2a2a35;
+    --accent: #c8f135;
+    --accent2: #ff6b35;
+    --accent3: #7c3aed;
+    --text: #f0f0f5;
+    --muted: #7a7a90;
+    --card-bg: #13131a;
+    --streak-low: #1a2a0a;
+    --streak-mid: #4a7c10;
+    --streak-high: #c8f135;
+  }
+  .light-mode {
+    --bg: #f4f4f0;
+    --surface: #ffffff;
+    --surface2: #eaeae5;
+    --border: #d0d0c8;
+    --accent: #5a9e00;
+    --accent2: #ff6b35;
+    --accent3: #7c3aed;
+    --text: #0d0d0f;
+    --muted: #6a6a75;
+    --card-bg: #ffffff;
+    --streak-low: #e8f5d0;
+    --streak-mid: #a8d860;
+    --streak-high: #5a9e00;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .header-right { display: flex; gap: 12px; align-items: center; }
+  .icon-btn {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    width: 40px; height: 40px; border-radius: 10px; cursor: pointer; font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .icon-btn:hover { background: var(--border); transform: scale(1.05); }
+
+  .quote-banner {
+    background: linear-gradient(135deg, var(--accent3) 0%, #4f1fa0 100%);
+    padding: 14px 40px; display: flex; align-items: center; gap: 12px; font-size: 0.88rem;
+  }
+  .quote-banner .q-icon { font-size: 1.2rem; }
+  .quote-text { color: #e9d5ff; font-style: italic; flex: 1; }
+  .quote-author { color: #c4b5fd; font-size: 0.8rem; }
+
+  .main { padding: 32px 40px; max-width: 1100px; margin: 0 auto; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px; position: relative; overflow: hidden; transition: transform 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .stat-card:nth-child(1)::before { background: var(--accent); }
+  .stat-card:nth-child(2)::before { background: var(--accent2); }
+  .stat-card:nth-child(3)::before { background: #38bdf8; }
+  .stat-card:nth-child(4)::before { background: var(--accent3); }
+  .stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+  .stat-sub { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+
+  .section-title {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+    letter-spacing: 0.5px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+
+  .add-form {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;
+  }
+  .add-form input, .add-form select {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 14px; border-radius: 10px; font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; outline: none; transition: border-color 0.2s;
+  }
+  .add-form input { flex: 1; min-width: 160px; }
+  .add-form input:focus, .add-form select:focus { border-color: var(--accent); }
+  .add-form select option { background: var(--surface2); }
+  .btn-add {
+    background: var(--accent); color: #0d0d0f; border: none; padding: 10px 20px;
+    border-radius: 10px; font-family: 'Syne', sans-serif; font-weight: 700;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-add:hover { transform: scale(1.03); filter: brightness(1.1); }
+
+  .habits-list { display: flex; flex-direction: column; gap: 12px; }
+  .habit-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px 20px; display: flex; align-items: center; gap: 14px;
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .habit-card.done {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, var(--surface) 0%, rgba(200,241,53,0.05) 100%);
+  }
+  .habit-card::after {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    border-radius: 4px 0 0 4px; background: var(--accent);
+    transform: scaleY(0); transition: transform 0.2s;
+  }
+  .habit-card.done::after { transform: scaleY(1); }
+  .habit-emoji { font-size: 1.6rem; width: 40px; text-align: center; }
+  .habit-info { flex: 1; }
+  .habit-name { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.95rem; }
+  .habit-meta { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+  .streak-badge {
+    display: flex; align-items: center; gap: 5px; background: var(--surface2);
+    border: 1px solid var(--border); padding: 5px 12px; border-radius: 20px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
+  }
+  .streak-badge.hot { background: rgba(255,107,53,0.15); border-color: var(--accent2); color: var(--accent2); }
+  .streak-badge.fire { background: rgba(200,241,53,0.1); border-color: var(--accent); color: var(--accent); }
+  .check-btn {
+    width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border);
+    background: transparent; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; font-size: 1rem; transition: all 0.2s; color: var(--muted);
+  }
+  .check-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .check-btn.checked { background: var(--accent); border-color: var(--accent); color: #0d0d0f; }
+  .del-btn {
+    width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; cursor: pointer; color: var(--muted); font-size: 0.8rem;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .del-btn:hover { background: rgba(255,80,80,0.15); border-color: #ff5050; color: #ff5050; }
+
+  .right-panel { display: flex; flex-direction: column; gap: 20px; }
+
+  .heatmap-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+  .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 12px; }
+  .heatmap-day-label { text-align: center; font-size: 0.65rem; color: var(--muted); padding-bottom: 4px; }
+  .heatmap-cell { aspect-ratio: 1; border-radius: 4px; background: var(--surface2); cursor: default; transition: transform 0.15s; }
+  .heatmap-cell:hover { transform: scale(1.2); }
+  .heatmap-cell.today { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .heatmap-cell[data-level="1"] { background: var(--streak-low); }
+  .heatmap-cell[data-level="2"] { background: var(--streak-mid); }
+  .heatmap-cell[data-level="3"] { background: var(--streak-high); }
+
+  .pomodoro-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; text-align: center; }
+  .timer-display { font-family: 'Syne', sans-serif; font-size: 3.5rem; font-weight: 800; letter-spacing: -2px; color: var(--accent); margin: 16px 0; line-height: 1; }
+  .timer-display.warning { color: var(--accent2); }
+  .timer-mode-tabs { display: flex; gap: 6px; justify-content: center; margin-bottom: 12px; }
+  .mode-tab {
+    padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); font-size: 0.78rem; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+  }
+  .mode-tab.active { background: var(--accent); color: #0d0d0f; border-color: var(--accent); font-weight: 600; }
+  .timer-progress { height: 4px; background: var(--surface2); border-radius: 4px; margin: 12px 0; overflow: hidden; }
+  .timer-bar { height: 100%; background: var(--accent); border-radius: 4px; transition: width 1s linear; }
+  .timer-controls { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+  .timer-btn { padding: 9px 22px; border-radius: 10px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; border: none; transition: all 0.2s; }
+  .timer-btn.primary { background: var(--accent); color: #0d0d0f; }
+  .timer-btn.secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .timer-btn:hover { transform: scale(1.04); filter: brightness(1.05); }
+  .sessions-count { font-size: 0.78rem; color: var(--muted); margin-top: 10px; }
+
+  .score-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+  .score-ring-wrap { display: flex; align-items: center; gap: 20px; }
+  .score-ring { position: relative; width: 90px; height: 90px; flex-shrink: 0; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; color: var(--accent); }
+  .score-details { flex: 1; }
+  .score-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .score-message { font-size: 0.88rem; font-weight: 500; }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+  .empty-state .big-icon { font-size: 3rem; margin-bottom: 12px; }
+  .empty-state p { font-size: 0.9rem; }
+
+  .toast {
+    position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: #0d0d0f;
+    padding: 12px 20px; border-radius: 12px; font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 0.88rem; transform: translateY(80px); opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 999;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  .confetti-wrap { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 9999; }
+  .conf { position: absolute; width: 8px; height: 8px; border-radius: 2px; }
+
+  @media (max-width: 800px) {
+    .main { padding: 20px; }
+    header { padding: 16px 20px; }
+    .two-col { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .quote-banner { padding: 12px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Habit<span>Forge</span></div>
+  <div class="header-right">
+    <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
+  </div>
+</header>
+
+<div class="quote-banner">
+  <span class="q-icon">✦</span>
+  <span class="quote-text" id="quoteText">Loading quote...</span>
+  <span class="quote-author" id="quoteAuthor"></span>
+</div>
+
+<div class="main">
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Today's Progress</div>
+      <div class="stat-value" id="statToday">0/0</div>
+      <div class="stat-sub">habits completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Best Streak</div>
+      <div class="stat-value" id="statBest">0 🔥</div>
+      <div class="stat-sub">consecutive days</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">This Week</div>
+      <div class="stat-value" id="statWeek">0%</div>
+      <div class="stat-sub">completion rate</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Study Sessions</div>
+      <div class="stat-value" id="statSessions">0</div>
+      <div class="stat-sub">pomodoros done</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-title">✦ My Habits</div>
+      <div class="add-form">
+        <input type="text" id="habitName" placeholder="Habit name e.g. Read 30 mins" maxlength="40"/>
+        <select id="habitEmoji">
+          <option value="📚">📚 Study</option>
+          <option value="💧">💧 Hydrate</option>
+          <option value="🏃">🏃 Exercise</option>
+          <option value="🧘">🧘 Meditate</option>
+          <option value="✍️">✍️ Journal</option>
+          <option value="🍎">🍎 Eat healthy</option>
+          <option value="😴">😴 Sleep early</option>
+          <option value="💻">💻 Code</option>
+          <option value="🎯">🎯 Focus</option>
+          <option value="🌿">🌿 Walk outside</option>
+        </select>
+        <button class="btn-add" onclick="addHabit()">+ Add Habit</button>
+      </div>
+      <div class="habits-list" id="habitsList">
+        <div class="empty-state">
+          <div class="big-icon">🌱</div>
+          <p>No habits yet. Add your first one above!</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="score-card">
+        <div class="section-title">⚡ Productivity Score</div>
+        <div class="score-ring-wrap">
+          <div class="score-ring">
+            <svg width="90" height="90" viewBox="0 0 90 90">
+              <circle cx="45" cy="45" r="38" fill="none" stroke="var(--surface2)" stroke-width="8"/>
+              <circle cx="45" cy="45" r="38" fill="none" stroke="var(--accent)" stroke-width="8"
+                stroke-dasharray="238.76" stroke-dashoffset="238.76"
+                stroke-linecap="round" id="scoreCircle" style="transition:stroke-dashoffset 0.8s ease"/>
+            </svg>
+            <div class="score-ring-num" id="scoreNum">0%</div>
+          </div>
+          <div class="score-details">
+            <div class="score-label">Today's Score</div>
+            <div class="score-message" id="scoreMessage">Start checking off habits!</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="heatmap-card">
+        <div class="section-title">📊 Activity Heatmap <span style="font-size:0.75rem;color:var(--muted);font-weight:400">— last 35 days</span></div>
+        <div class="heatmap-grid" id="heatmapGrid"></div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:0.72rem;color:var(--muted);">
+          <span>Less</span>
+          <div style="width:14px;height:14px;border-radius:3px;background:var(--surface2)"></div>
+          <div style="width:14px;height:14px;border-radius:3px;background:var(--streak-low)"></div>
+          <div style="width:14px;height:14px;border-radius:3px;background:var(--streak-mid)"></div>
+          <div style="width:14px;height:14px;border-radius:3px;background:var(--streak-high)"></div>
+          <span>More</span>
+        </div>
+      </div>
+
+      <div class="pomodoro-card">
+        <div class="section-title" style="justify-content:center">⏱ Study Timer</div>
+        <div class="timer-mode-tabs">
+          <button class="mode-tab active" onclick="setMode('focus',25)">Focus</button>
+          <button class="mode-tab" onclick="setMode('short',5)">Short Break</button>
+          <button class="mode-tab" onclick="setMode('long',15)">Long Break</button>
+        </div>
+        <div class="timer-display" id="timerDisplay">25:00</div>
+        <div class="timer-progress">
+          <div class="timer-bar" id="timerBar" style="width:100%"></div>
+        </div>
+        <div class="timer-controls">
+          <button class="timer-btn primary" id="startBtn" onclick="toggleTimer()">▶ Start</button>
+          <button class="timer-btn secondary" onclick="resetTimer()">↺ Reset</button>
+        </div>
+        <div class="sessions-count" id="sessionsCount">🍅 Sessions today: 0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<script>
+const QUOTES = [
+  { text: "Small daily improvements over time lead to stunning results.", author: "— Robin Sharma" },
+  { text: "Discipline is the bridge between goals and accomplishment.", author: "— Jim Rohn" },
+  { text: "You don't have to be great to start, but you have to start to be great.", author: "— Zig Ziglar" },
+  { text: "The secret of getting ahead is getting started.", author: "— Mark Twain" },
+  { text: "Success is the sum of small efforts repeated day in and day out.", author: "— Robert Collier" },
+  { text: "Don't watch the clock; do what it does. Keep going.", author: "— Sam Levenson" },
+  { text: "It always seems impossible until it's done.", author: "— Nelson Mandela" },
+  { text: "Push yourself, because no one else is going to do it for you.", author: "" },
+  { text: "Great things never come from comfort zones.", author: "" },
+  { text: "Hard work beats talent when talent doesn't work hard.", author: "— Tim Notke" },
+];
+
+let habits = JSON.parse(localStorage.getItem('hf_habits') || '[]');
+let history = JSON.parse(localStorage.getItem('hf_history') || '{}');
+let pomodoroSessions = parseInt(localStorage.getItem('hf_sessions') || '0');
+
+const todayKey = () => new Date().toISOString().slice(0,10);
+
+function init() {
+  renderQuote();
+  renderHabits();
+  renderHeatmap();
+  updateStats();
+  renderSessions();
+}
+
+function renderQuote() {
+  const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  document.getElementById('quoteText').textContent = q.text;
+  document.getElementById('quoteAuthor').textContent = q.author;
+}
+
+function addHabit() {
+  const name = document.getElementById('habitName').value.trim();
+  const emoji = document.getElementById('habitEmoji').value;
+  if (!name) { showToast('⚠️ Please enter a habit name!'); return; }
+  if (name.length < 2) { showToast('⚠️ Name too short!'); return; }
+  if (habits.some(h => h.name.toLowerCase() === name.toLowerCase())) {
+    showToast('⚠️ Habit already exists!'); return;
+  }
+  habits.push({ id: Date.now(), name, emoji, createdAt: todayKey() });
+  saveHabits();
+  document.getElementById('habitName').value = '';
+  renderHabits();
+  updateStats();
+  showToast('✅ Habit added!');
+}
+
+function deleteHabit(id) {
+  if (!confirm('Delete this habit?')) return;
+  habits = habits.filter(h => h.id !== id);
+  saveHabits();
+  renderHabits();
+  updateStats();
+  showToast('🗑️ Habit removed');
+}
+
+function toggleHabit(id) {
+  const today = todayKey();
+  if (!history[today]) history[today] = {};
+  if (history[today][id]) {
+    delete history[today][id];
+  } else {
+    history[today][id] = true;
+    checkAllDone();
+  }
+  saveHistory();
+  renderHabits();
+  updateStats();
+  renderHeatmap();
+}
+
+function isCheckedToday(id) {
+  const t = history[todayKey()];
+  return t && t[id];
+}
+
+function getStreak(id) {
+  let streak = 0;
+  let d = new Date();
+  while (true) {
+    const key = d.toISOString().slice(0,10);
+    if (history[key] && history[key][id]) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else {
+      if (key === todayKey() && streak === 0) {
+        d.setDate(d.getDate() - 1);
+        const yk = d.toISOString().slice(0,10);
+        if (history[yk] && history[yk][id]) { d = new Date(yk); continue; }
+      }
+      break;
+    }
+  }
+  return streak;
+}
+
+function getBestStreak() {
+  if (!habits.length) return 0;
+  let best = 0;
+  habits.forEach(h => { const s = getStreak(h.id); if (s > best) best = s; });
+  return best;
+}
+
+function checkAllDone() {
+  const today = todayKey();
+  const done = habits.filter(h => history[today] && history[today][h.id]).length;
+  if (habits.length > 0 && done === habits.length) {
+    confetti();
+    showToast('🎉 All habits done today! Amazing!');
+  }
+}
+
+function renderHabits() {
+  const list = document.getElementById('habitsList');
+  if (!habits.length) {
+    list.innerHTML = `<div class="empty-state"><div class="big-icon">🌱</div><p>No habits yet. Add your first one above!</p></div>`;
+    return;
+  }
+  list.innerHTML = habits.map(h => {
+    const checked = isCheckedToday(h.id);
+    const streak = getStreak(h.id);
+    const badgeClass = streak >= 7 ? 'fire' : streak >= 3 ? 'hot' : '';
+    const streakIcon = streak >= 7 ? '🔥' : streak >= 3 ? '⚡' : '📆';
+    return `
+    <div class="habit-card${checked ? ' done' : ''}">
+      <span class="habit-emoji">${h.emoji}</span>
+      <div class="habit-info">
+        <div class="habit-name">${escHtml(h.name)}</div>
+        <div class="habit-meta">Since ${h.createdAt}</div>
+      </div>
+      <div class="streak-badge ${badgeClass}">${streakIcon} ${streak}d</div>
+      <button class="check-btn${checked ? ' checked' : ''}" onclick="toggleHabit(${h.id})" title="${checked ? 'Unmark' : 'Mark done'}">${checked ? '✓' : ''}</button>
+      <button class="del-btn" onclick="deleteHabit(${h.id})" title="Delete">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function updateStats() {
+  const today = todayKey();
+  const total = habits.length;
+  const done = habits.filter(h => history[today] && history[today][h.id]).length;
+  document.getElementById('statToday').textContent = `${done}/${total}`;
+  document.getElementById('statBest').textContent = `${getBestStreak()} 🔥`;
+  let weekDone = 0, weekTotal = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const k = d.toISOString().slice(0,10);
+    weekTotal += total;
+    if (total > 0) weekDone += habits.filter(h => history[k] && history[k][h.id]).length;
+  }
+  const pct = weekTotal > 0 ? Math.round((weekDone / weekTotal) * 100) : 0;
+  document.getElementById('statWeek').textContent = `${pct}%`;
+  const score = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('scoreNum').textContent = `${score}%`;
+  const circ = 238.76;
+  document.getElementById('scoreCircle').style.strokeDashoffset = circ - (circ * score / 100);
+  const msgs = ['Start checking off habits!','Keep going, you got this!','Good progress!','Almost there!','Perfect score! 🔥'];
+  const mi = score === 0 ? 0 : score < 30 ? 1 : score < 60 ? 2 : score < 100 ? 3 : 4;
+  document.getElementById('scoreMessage').textContent = msgs[mi];
+}
+
+function renderHeatmap() {
+  const grid = document.getElementById('heatmapGrid');
+  const days = ['S','M','T','W','T','F','S'];
+  let html = days.map(d => `<div class="heatmap-day-label">${d}</div>`).join('');
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0,10);
+  const start = new Date(today);
+  start.setDate(start.getDate() - 34);
+  for (let i = 0; i < 35; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const key = d.toISOString().slice(0,10);
+    const dayHistory = history[key] || {};
+    const count = Object.keys(dayHistory).length;
+    let level = 0;
+    if (count > 0) level = count >= habits.length && habits.length > 0 ? 3 : count >= Math.ceil(habits.length / 2) ? 2 : 1;
+    const isToday = key === todayStr;
+    html += `<div class="heatmap-cell${isToday ? ' today' : ''}" data-level="${level}" title="${key}: ${count} habits"></div>`;
+  }
+  grid.innerHTML = html;
+}
+
+let timerInterval = null;
+let timerRunning = false;
+let totalSeconds = 25 * 60;
+let remainingSeconds = totalSeconds;
+let currentMode = 'focus';
+
+function setMode(mode, mins) {
+  if (timerRunning) resetTimer();
+  currentMode = mode;
+  totalSeconds = mins * 60;
+  remainingSeconds = totalSeconds;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  updateTimerDisplay();
+  document.getElementById('timerBar').style.width = '100%';
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('startBtn').textContent = '▶ Resume';
+  } else {
+    timerRunning = true;
+    document.getElementById('startBtn').textContent = '⏸ Pause';
+    timerInterval = setInterval(tick, 1000);
+  }
+}
+
+function tick() {
+  if (remainingSeconds <= 0) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('startBtn').textContent = '▶ Start';
+    if (currentMode === 'focus') {
+      pomodoroSessions++;
+      localStorage.setItem('hf_sessions', pomodoroSessions);
+      renderSessions();
+      document.getElementById('statSessions').textContent = pomodoroSessions;
+      showToast('🍅 Focus session complete! Take a break.');
+      confetti();
+    } else {
+      showToast('✅ Break over! Ready to focus?');
+    }
+    remainingSeconds = 0;
+    updateTimerDisplay();
+    document.getElementById('timerBar').style.width = '0%';
+    return;
+  }
+  remainingSeconds--;
+  updateTimerDisplay();
+  const pct = (remainingSeconds / totalSeconds) * 100;
+  document.getElementById('timerBar').style.width = pct + '%';
+  document.getElementById('timerDisplay').classList.toggle('warning', remainingSeconds <= 60);
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  remainingSeconds = totalSeconds;
+  updateTimerDisplay();
+  document.getElementById('timerBar').style.width = '100%';
+  document.getElementById('startBtn').textContent = '▶ Start';
+  document.getElementById('timerDisplay').classList.remove('warning');
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(remainingSeconds / 60).toString().padStart(2,'0');
+  const s = (remainingSeconds % 60).toString().padStart(2,'0');
+  document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+}
+
+function renderSessions() {
+  document.getElementById('sessionsCount').textContent = `🍅 Sessions today: ${pomodoroSessions}`;
+  document.getElementById('statSessions').textContent = pomodoroSessions;
+}
+
+let isDark = true;
+document.getElementById('themeToggle').addEventListener('click', () => {
+  isDark = !isDark;
+  document.body.classList.toggle('light-mode', !isDark);
+  document.getElementById('themeToggle').textContent = isDark ? '🌙' : '☀️';
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function confetti() {
+  const wrap = document.getElementById('confettiWrap');
+  const colors = ['#c8f135','#ff6b35','#7c3aed','#38bdf8','#f59e0b'];
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement('div');
+    el.className = 'conf';
+    el.style.cssText = `
+      left:${Math.random()*100}%;top:-10px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation:fall ${0.8+Math.random()*1.2}s ease forwards;
+      animation-delay:${Math.random()*0.5}s;
+      transform:rotate(${Math.random()*360}deg);`;
+    wrap.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  }
+}
+
+const styleEl = document.createElement('style');
+styleEl.textContent = `@keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }`;
+document.head.appendChild(styleEl);
+
+function saveHabits() { localStorage.setItem('hf_habits', JSON.stringify(habits)); }
+function saveHistory() { localStorage.setItem('hf_history', JSON.stringify(history)); }
+function escHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+document.getElementById('habitName').addEventListener('keydown', e => { if (e.key === 'Enter') addHabit(); });
+
+init();
+</script>
+</body>
+</html>
